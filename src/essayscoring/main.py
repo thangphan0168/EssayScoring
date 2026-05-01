@@ -1,0 +1,67 @@
+import torch
+from transformers import (
+    AutoTokenizer,
+    TrainingArguments,
+    DataCollatorWithPadding,
+)
+from essayscoring.dataloader import EssayDataset
+from essayscoring.model import ScoringModel
+from essayscoring.trainer import compute_metrics, OrdinalTrainer
+
+
+def train(
+    model_name: str = "bert-base-uncased",
+    train_csv: str = "train.csv",
+    eval_csv: str | None = None,
+    output_dir: str = "./checkpoints",
+    num_thresholds: int = 5,
+    num_epochs: int = 3,
+    batch_size: int = 8,
+    learning_rate: float = 2e-5,
+    dropout: float = 0.1,
+    logging_steps: int = 50,
+    eval_steps: int = 200,
+    save_steps: int = 200
+):
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
+ 
+    train_dataset = EssayDataset(train_csv, tokenizer)
+    eval_dataset = EssayDataset(eval_csv, tokenizer) if eval_csv else None
+ 
+    training_args = TrainingArguments(
+        output_dir=output_dir,
+        num_train_epochs=num_epochs,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size,
+        learning_rate=learning_rate,
+        eval_strategy="steps" if eval_dataset else "no",
+        save_strategy="steps",
+        eval_steps=eval_steps,
+        save_steps=save_steps,
+        save_total_limit=4,
+        load_best_model_at_end=bool(eval_dataset),
+        metric_for_best_model="cohen_kappa" if eval_dataset else None,
+        greater_is_better=True,
+        logging_steps=logging_steps,
+        fp16=False,
+        dataloader_num_workers=4,
+        report_to="none",
+    )
+ 
+    collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="pt")
+ 
+    trainer = OrdinalTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        data_collator=collator,
+        compute_metrics=compute_metrics,
+    )
+ 
+    trainer.train()
+    trainer.save_model(output_dir)
+    tokenizer.save_pretrained(output_dir)
+    print(f"Model saved to {output_dir}")
+    return trainer
