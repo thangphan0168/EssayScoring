@@ -21,13 +21,14 @@ def train(
     dropout: float = 0.1,
     logging_steps: int = 50,
     eval_steps: int = 200,
-    save_steps: int = 200
+    save_steps: int = 200,
+    max_length: int = 1024
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
  
-    train_dataset = EssayDataset(train_csv, tokenizer)
-    eval_dataset = EssayDataset(eval_csv, tokenizer) if eval_csv else None
+    train_dataset = EssayDataset(train_csv, tokenizer, max_length=max_length)
+    eval_dataset = EssayDataset(eval_csv, tokenizer, max_length=max_length) if eval_csv else None
  
     training_args = TrainingArguments(
         output_dir=output_dir,
