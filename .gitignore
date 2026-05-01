@@ -2,3 +2,4 @@
 data
 external_data
 __pycache__
+.env
