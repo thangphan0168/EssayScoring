@@ -45,7 +45,7 @@ def train(
         greater_is_better=True,
         logging_steps=logging_steps,
         fp16=False,
-        dataloader_num_workers=4,
+        dataloader_num_workers=2,
         report_to="none",
     )
  
