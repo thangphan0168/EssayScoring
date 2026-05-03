@@ -17,7 +17,8 @@ def train(
     num_thresholds: int = 5,
     num_epochs: int = 3,
     batch_size: int = 8,
-    learning_rate: float = 2e-5,
+    backbone_lr: float = 1e-6,
+    head_lr: float = 1e-5,
     dropout: float = 0.1,
     logging_steps: int = 50,
     eval_steps: int = 200,
@@ -35,7 +36,6 @@ def train(
         num_train_epochs=num_epochs,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        learning_rate=learning_rate,
         eval_strategy="steps" if eval_dataset else "no",
         save_strategy="steps",
         eval_steps=eval_steps,
@@ -59,6 +59,8 @@ def train(
         eval_dataset=eval_dataset,
         data_collator=collator,
         compute_metrics=compute_metrics,
+        backbone_lr=backbone_lr,
+        head_lr=head_lr
     )
  
     trainer.train()
