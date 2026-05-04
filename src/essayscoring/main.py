@@ -49,7 +49,7 @@ def train(
         metric_for_best_model="cohen_kappa" if eval_dataset else None,
         greater_is_better=True,
         logging_steps=logging_steps,
-        fp16=False,
+        fp16=torch.cuda.is_available(),
         dataloader_num_workers=2,
         report_to="none",
     )
