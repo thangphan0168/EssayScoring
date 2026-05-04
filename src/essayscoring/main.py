@@ -23,10 +23,14 @@ def train(
     logging_steps: int = 50,
     eval_steps: int = 200,
     save_steps: int = 200,
-    max_length: int = 1024
+    max_length: int = 1024,
+    freeze_backbone: bool = False
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
+    if freeze_backbone:
+        for param in model.backbone.parameters():
+            param.requires_grad = False
  
     train_dataset = EssayDataset(train_csv, tokenizer, max_length=max_length)
     eval_dataset = EssayDataset(eval_csv, tokenizer, max_length=max_length) if eval_csv else None
