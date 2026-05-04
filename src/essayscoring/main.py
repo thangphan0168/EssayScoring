@@ -20,6 +20,7 @@ def train(
     backbone_lr: float = 1e-6,
     head_lr: float = 1e-5,
     dropout: float = 0.1,
+    warmup_steps: int = 200,
     logging_steps: int = 50,
     eval_steps: int = 200,
     save_steps: int = 200,
@@ -52,6 +53,7 @@ def train(
         fp16=torch.cuda.is_available(),
         dataloader_num_workers=2,
         report_to="none",
+        warmup_steps=warmup_steps
     )
  
     collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="pt")
