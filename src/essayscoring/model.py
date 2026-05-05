@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from transformers import AutoModel
+from transformers import AutoModel, AutoConfig
 
 from essayscoring.loss import OrdinalLoss
 
@@ -11,7 +11,8 @@ class ScoringModel(nn.Module):
         if from_pretrained:
             self.backbone = AutoModel.from_pretrained(model_name, dtype=torch.float)
         else:
-            self.backbone = AutoModel.from_config(model_name)
+            config = AutoConfig.from_pretrained(model_name)
+            self.backbone = AutoModel.from_config(config)
         hidden_size = self.backbone.config.hidden_size
         self.dropout = nn.Dropout(dropout)
         self.scoring_head = nn.Linear(hidden_size, num_thresholds)
