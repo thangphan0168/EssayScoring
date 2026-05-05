@@ -25,10 +25,16 @@ def train(
     eval_steps: int = 200,
     save_steps: int = 200,
     max_length: int = 1024,
-    freeze_backbone: bool = False
+    freeze_backbone: bool = False,
+    checkpoint_dir: str | None = None
 ):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir or model_name)
+    if checkpoint_dir:
+        model = ScoringModel.from_checkpoint(
+            checkpoint_dir, model_name, dropout=dropout
+        )
+    else:
+        model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
     if freeze_backbone:
         for param in model.backbone.parameters():
             param.requires_grad = False
