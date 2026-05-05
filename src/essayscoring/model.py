@@ -12,7 +12,7 @@ class ScoringModel(nn.Module):
             self.backbone = AutoModel.from_pretrained(model_name, dtype=torch.float)
         else:
             config = AutoConfig.from_pretrained(model_name)
-            self.backbone = AutoModel.from_config(config)
+            self.backbone = AutoModel.from_config(config, dtype=torch.float)
         hidden_size = self.backbone.config.hidden_size
         self.dropout = nn.Dropout(dropout)
         self.scoring_head = nn.Linear(hidden_size, num_thresholds)
