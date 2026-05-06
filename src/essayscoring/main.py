@@ -20,6 +20,7 @@ def train(
     backbone_lr: float = 1e-6,
     head_lr: float = 1e-5,
     dropout: float = 0.1,
+    label_smoothing: float = 0.0,
     warmup_steps: int = 200,
     logging_steps: int = 50,
     eval_steps: int = 200,
@@ -31,10 +32,11 @@ def train(
     tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir or model_name)
     if checkpoint_dir:
         model = ScoringModel.from_checkpoint(
-            checkpoint_dir, model_name, dropout=dropout
+            checkpoint_dir, model_name, dropout=dropout, label_smoothing=label_smoothing
         )
     else:
-        model = ScoringModel(model_name, dropout=dropout, num_thresholds=num_thresholds)
+        model = ScoringModel(model_name, dropout=dropout,
+            num_thresholds=num_thresholds, label_smoothing=label_smoothing)
     if freeze_backbone:
         for param in model.backbone.parameters():
             param.requires_grad = False

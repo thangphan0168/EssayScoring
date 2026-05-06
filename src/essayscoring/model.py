@@ -6,7 +6,7 @@ from essayscoring.loss import OrdinalLoss
 
 
 class ScoringModel(nn.Module):
-    def __init__(self, model_name, dropout=0.1, num_thresholds=5, from_pretrained=True):
+    def __init__(self, model_name, dropout=0.1, num_thresholds=5, from_pretrained=True, label_smoothing=0.0):
         super().__init__()
         if from_pretrained:
             self.backbone = AutoModel.from_pretrained(model_name, dtype=torch.float)
@@ -16,7 +16,7 @@ class ScoringModel(nn.Module):
         hidden_size = self.backbone.config.hidden_size
         self.dropout = nn.Dropout(dropout)
         self.scoring_head = nn.Linear(hidden_size, num_thresholds)
-        self.loss_fn = OrdinalLoss()
+        self.loss_fn = OrdinalLoss(smoothing=label_smoothing)
 
     def forward(self, input_ids, attention_mask, labels=None):
         output = self.backbone(input_ids=input_ids, 
@@ -32,13 +32,15 @@ class ScoringModel(nn.Module):
         return {"loss": loss, "logits": logits}
 
     @classmethod
-    def from_checkpoint(cls, checkpoint_dir: str, model_name: str, dropout: float = 0.1):
+    def from_checkpoint(cls, checkpoint_dir: str, model_name: str,
+            dropout: float = 0.1, label_smoothing: float = 0.0):
         import os
         from safetensors.torch import load_file
 
         state_dict = load_file(os.path.join(checkpoint_dir, "model.safetensors"))
         num_thresholds = state_dict["scoring_head.weight"].shape[0]
 
-        model = cls(model_name, dropout=dropout, num_thresholds=num_thresholds, from_pretrained=False)
+        model = cls(model_name, dropout=dropout, num_thresholds=num_thresholds,
+            from_pretrained=False, label_smoothing=label_smoothing)
         model.load_state_dict(state_dict, strict=False)
         return model
