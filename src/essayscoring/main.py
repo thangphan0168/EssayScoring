@@ -1,3 +1,5 @@
+from functools import partial
+
 import torch
 from transformers import (
     AutoTokenizer,
@@ -27,16 +29,18 @@ def train(
     save_steps: int = 200,
     max_length: int = 1024,
     freeze_backbone: bool = False,
-    checkpoint_dir: str | None = None
+    checkpoint_dir: str | None = None,
+    loss_type: str = "ordinal"
 ):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir or model_name)
     if checkpoint_dir:
         model = ScoringModel.from_checkpoint(
-            checkpoint_dir, model_name, dropout=dropout, label_smoothing=label_smoothing
+            checkpoint_dir, model_name, dropout=dropout, label_smoothing=label_smoothing, loss_type=loss_type
         )
     else:
         model = ScoringModel(model_name, dropout=dropout,
-            num_thresholds=num_thresholds, label_smoothing=label_smoothing)
+            num_thresholds=num_thresholds, label_smoothing=label_smoothing, loss_type=loss_type
+        )
     if freeze_backbone:
         for param in model.backbone.parameters():
             param.requires_grad = False
@@ -72,7 +76,7 @@ def train(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         data_collator=collator,
-        compute_metrics=compute_metrics,
+        compute_metrics=partial(compute_metrics, loss_type=loss_type),
         backbone_lr=backbone_lr,
         head_lr=head_lr
     )
