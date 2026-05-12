@@ -106,7 +106,7 @@ The primary metric is **Quadratic Weighted Kappa (QWK)**, reported as `cohen_kap
 
 ## Experiment Results
 
-All runs use `bert-base-uncased` unless otherwise noted. Best-checkpoint QWK is reported (higher is better).
+All runs use `google/gemma-3-270m` unless otherwise noted. Best-checkpoint QWK is reported (higher is better).
 
 | Run | Epochs | Backbone LR | Head LR | Warmup | Loss | Label Smoothing | Notes | **QWK** |
 |---|---|---|---|---|---|---|---|---|
